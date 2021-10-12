@@ -1,0 +1,306 @@
+{
+ "metadata": {
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.9.5"
+  },
+  "orig_nbformat": 4,
+  "kernelspec": {
+   "name": "python3",
+   "display_name": "Python 3.9.5 64-bit"
+  },
+  "interpreter": {
+   "hash": "2a4c22a1de3bd187807519959e8a25745b297388b3ac19fcb9c989ff8b3a6f10"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 2,
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": 26,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import numpy as np\n",
+    "from tensorflow import keras\n",
+    "from tensorflow.keras import layers\n",
+    "import matplotlib.pyplot as plt"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "metadata": {},
+   "outputs": [
+    {
+     "output_type": "stream",
+     "name": "stdout",
+     "text": [
+      "Downloading data from https://storage.googleapis.com/tensorflow/tf-keras-datasets/mnist.npz\n",
+      "11493376/11490434 [==============================] - 3s 0us/step\n"
+     ]
+    }
+   ],
+   "source": [
+    "num_classes = 10\n",
+    "input_shape = (28, 28, 1)\n",
+    "\n",
+    "(x_train, y_train), (x_test, y_test) = keras.datasets.mnist.load_data()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "x_train = x_train.astype(\"float32\") / 255\n",
+    "x_test = x_test.astype(\"float32\") / 255"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "x_train = np.expand_dims(x_train, -1)\n",
+    "x_test = np.expand_dims(x_test, -1)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "metadata": {},
+   "outputs": [
+    {
+     "output_type": "stream",
+     "name": "stdout",
+     "text": [
+      "x_train shape: (60000, 28, 28, 1)\n60000 train samples\n10000 test samples\n"
+     ]
+    }
+   ],
+   "source": [
+    "print(\"x_train shape:\", x_train.shape)\n",
+    "print(x_train.shape[0], \"train samples\")\n",
+    "print(x_test.shape[0], \"test samples\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 6,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "y_train = keras.utils.to_categorical(y_train, num_classes)\n",
+    "y_test = keras.utils.to_categorical(y_test, num_classes)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 13,
+   "metadata": {},
+   "outputs": [
+    {
+     "output_type": "stream",
+     "name": "stdout",
+     "text": [
+      "WARNING:tensorflow:Please add `keras.layers.InputLayer` instead of `keras.Input` to Sequential model. `keras.Input` is intended to be used by Functional model.\n",
+      "Model: \"sequential_1\"\n",
+      "_________________________________________________________________\n",
+      "Layer (type)                 Output Shape              Param #   \n",
+      "=================================================================\n",
+      "conv2d_2 (Conv2D)            (None, 26, 26, 32)        320       \n",
+      "_________________________________________________________________\n",
+      "max_pooling2d_2 (MaxPooling2 (None, 13, 13, 32)        0         \n",
+      "_________________________________________________________________\n",
+      "conv2d_3 (Conv2D)            (None, 11, 11, 64)        18496     \n",
+      "_________________________________________________________________\n",
+      "max_pooling2d_3 (MaxPooling2 (None, 5, 5, 64)          0         \n",
+      "_________________________________________________________________\n",
+      "flatten_1 (Flatten)          (None, 1600)              0         \n",
+      "_________________________________________________________________\n",
+      "dropout_1 (Dropout)          (None, 1600)              0         \n",
+      "_________________________________________________________________\n",
+      "dense_1 (Dense)              (None, 10)                16010     \n",
+      "=================================================================\n",
+      "Total params: 34,826\n",
+      "Trainable params: 34,826\n",
+      "Non-trainable params: 0\n",
+      "_________________________________________________________________\n"
+     ]
+    }
+   ],
+   "source": [
+    "model = keras.Sequential (\n",
+    "    [\n",
+    "        keras.Input(shape=input_shape),\n",
+    "        layers.Conv2D(32, kernel_size=(3, 3), activation = \"relu\"),\n",
+    "        layers.MaxPooling2D(pool_size=(2, 2)),\n",
+    "        layers.Conv2D(64, kernel_size=(3, 3), activation=\"relu\"),\n",
+    "        layers.MaxPooling2D(pool_size=(2, 2)),\n",
+    "        layers.Flatten(),\n",
+    "        layers.Dropout(0.5),\n",
+    "        layers.Dense(num_classes, activation=\"softmax\"),\n",
+    "    ]\n",
+    ")\n",
+    "\n",
+    "model.summary()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 14,
+   "metadata": {},
+   "outputs": [
+    {
+     "output_type": "stream",
+     "name": "stdout",
+     "text": [
+      "Epoch 1/15\n",
+      "422/422 [==============================] - 19s 45ms/step - loss: 0.3670 - accuracy: 0.8876 - val_loss: 0.0838 - val_accuracy: 0.9752\n",
+      "Epoch 2/15\n",
+      "422/422 [==============================] - 18s 43ms/step - loss: 0.1172 - accuracy: 0.9639 - val_loss: 0.0590 - val_accuracy: 0.9833\n",
+      "Epoch 3/15\n",
+      "422/422 [==============================] - 19s 46ms/step - loss: 0.0875 - accuracy: 0.9730 - val_loss: 0.0506 - val_accuracy: 0.9847\n",
+      "Epoch 4/15\n",
+      "422/422 [==============================] - 19s 46ms/step - loss: 0.0727 - accuracy: 0.9776 - val_loss: 0.0464 - val_accuracy: 0.9852\n",
+      "Epoch 5/15\n",
+      "422/422 [==============================] - 20s 47ms/step - loss: 0.0626 - accuracy: 0.9800 - val_loss: 0.0418 - val_accuracy: 0.9878\n",
+      "Epoch 6/15\n",
+      "422/422 [==============================] - 20s 47ms/step - loss: 0.0580 - accuracy: 0.9817 - val_loss: 0.0361 - val_accuracy: 0.9898\n",
+      "Epoch 7/15\n",
+      "422/422 [==============================] - 20s 47ms/step - loss: 0.0521 - accuracy: 0.9839 - val_loss: 0.0370 - val_accuracy: 0.9893\n",
+      "Epoch 8/15\n",
+      "422/422 [==============================] - 20s 46ms/step - loss: 0.0481 - accuracy: 0.9853 - val_loss: 0.0337 - val_accuracy: 0.9910\n",
+      "Epoch 9/15\n",
+      "422/422 [==============================] - 20s 46ms/step - loss: 0.0458 - accuracy: 0.9859 - val_loss: 0.0328 - val_accuracy: 0.9913\n",
+      "Epoch 10/15\n",
+      "422/422 [==============================] - 20s 46ms/step - loss: 0.0428 - accuracy: 0.9862 - val_loss: 0.0322 - val_accuracy: 0.9902\n",
+      "Epoch 11/15\n",
+      "422/422 [==============================] - 20s 47ms/step - loss: 0.0404 - accuracy: 0.9870 - val_loss: 0.0315 - val_accuracy: 0.9905\n",
+      "Epoch 12/15\n",
+      "422/422 [==============================] - 20s 47ms/step - loss: 0.0369 - accuracy: 0.9883 - val_loss: 0.0305 - val_accuracy: 0.9905\n",
+      "Epoch 13/15\n",
+      "422/422 [==============================] - 20s 47ms/step - loss: 0.0360 - accuracy: 0.9890 - val_loss: 0.0276 - val_accuracy: 0.9917\n",
+      "Epoch 14/15\n",
+      "422/422 [==============================] - 20s 47ms/step - loss: 0.0351 - accuracy: 0.9889 - val_loss: 0.0275 - val_accuracy: 0.9920\n",
+      "Epoch 15/15\n",
+      "422/422 [==============================] - 20s 47ms/step - loss: 0.0320 - accuracy: 0.9895 - val_loss: 0.0271 - val_accuracy: 0.9927\n"
+     ]
+    },
+    {
+     "output_type": "execute_result",
+     "data": {
+      "text/plain": [
+       "<tensorflow.python.keras.callbacks.History at 0x275e9074d60>"
+      ]
+     },
+     "metadata": {},
+     "execution_count": 14
+    }
+   ],
+   "source": [
+    "batch_size = 128\n",
+    "epochs = 15\n",
+    "\n",
+    "model.compile(loss=\"categorical_crossentropy\", optimizer=\"adam\", metrics=[\"accuracy\"])\n",
+    "\n",
+    "model.fit(x_train, y_train, batch_size=batch_size, epochs=epochs, validation_split=0.1)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 23,
+   "metadata": {},
+   "outputs": [
+    {
+     "output_type": "stream",
+     "name": "stdout",
+     "text": [
+      "Test loss: 0.025425167754292488\nTest accuracy: 0.9919000267982483\n"
+     ]
+    }
+   ],
+   "source": [
+    "score = model.evaluate(x_test, y_test, verbose=0)\n",
+    "print(\"Test loss:\", score[0])\n",
+    "print(\"Test accuracy:\", score[1])"
+   ]
+  },
+  {
+   "source": [
+    "y_predictions = model.predict(x_test)"
+   ],
+   "cell_type": "code",
+   "metadata": {},
+   "execution_count": 29,
+   "outputs": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 33,
+   "metadata": {},
+   "outputs": [
+    {
+     "output_type": "stream",
+     "name": "stdout",
+     "text": [
+      "9\n"
+     ]
+    }
+   ],
+   "source": [
+    "print(np.argmax(y_predictions[73]))"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 32,
+   "metadata": {},
+   "outputs": [
+    {
+     "output_type": "execute_result",
+     "data": {
+      "text/plain": [
+       "<matplotlib.image.AxesImage at 0x275ecf81af0>"
+      ]
+     },
+     "metadata": {},
+     "execution_count": 32
+    },
+    {
+     "output_type": "display_data",
+     "data": {
+      "text/plain": "<Figure size 432x288 with 1 Axes>",
+      "image/svg+xml": "<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"no\"?>\r\n<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\"\r\n  \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">\r\n<svg height=\"248.518125pt\" version=\"1.1\" viewBox=\"0 0 251.565 248.518125\" width=\"251.565pt\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">\r\n <metadata>\r\n  <rdf:RDF xmlns:cc=\"http://creativecommons.org/ns#\" xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\">\r\n   <cc:Work>\r\n    <dc:type rdf:resource=\"http://purl.org/dc/dcmitype/StillImage\"/>\r\n    <dc:date>2021-06-23T12:59:51.461010</dc:date>\r\n    <dc:format>image/svg+xml</dc:format>\r\n    <dc:creator>\r\n     <cc:Agent>\r\n      <dc:title>Matplotlib v3.4.2, https://matplotlib.org/</dc:title>\r\n     </cc:Agent>\r\n    </dc:creator>\r\n   </cc:Work>\r\n  </rdf:RDF>\r\n </metadata>\r\n <defs>\r\n  <style type=\"text/css\">*{stroke-linecap:butt;stroke-linejoin:round;}</style>\r\n </defs>\r\n <g id=\"figure_1\">\r\n  <g id=\"patch_1\">\r\n   <path d=\"M 0 248.518125 \r\nL 251.565 248.518125 \r\nL 251.565 0 \r\nL 0 0 \r\nz\r\n\" style=\"fill:none;\"/>\r\n  </g>\r\n  <g id=\"axes_1\">\r\n   <g id=\"patch_2\">\r\n    <path d=\"M 26.925 224.64 \r\nL 244.365 224.64 \r\nL 244.365 7.2 \r\nL 26.925 7.2 \r\nz\r\n\" style=\"fill:#ffffff;\"/>\r\n   </g>\r\n   <g clip-path=\"url(#pc11fe2bef6)\">\r\n    <image height=\"218\" id=\"image53c420e2a9\" transform=\"scale(1 -1)translate(0 -218)\" width=\"218\" x=\"26.925\" xlink:href=\"data:image/png;base64,\r\n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\" y=\"-6.64\"/>\r\n   </g>\r\n   <g id=\"matplotlib.axis_1\">\r\n    <g id=\"xtick_1\">\r\n     <g id=\"line2d_1\">\r\n      <defs>\r\n       <path d=\"M 0 0 \r\nL 0 3.5 \r\n\" id=\"m68dbf31e8c\" style=\"stroke:#000000;stroke-width:0.8;\"/>\r\n      </defs>\r\n      <g>\r\n       <use style=\"stroke:#000000;stroke-width:0.8;\" x=\"30.807857\" xlink:href=\"#m68dbf31e8c\" y=\"224.64\"/>\r\n      </g>\r\n     </g>\r\n     <g id=\"text_1\">\r\n      <!-- 0 -->\r\n      <g transform=\"translate(27.626607 239.238437)scale(0.1 -0.1)\">\r\n       <defs>\r\n        <path d=\"M 2034 4250 \r\nQ 1547 4250 1301 3770 \r\nQ 1056 3291 1056 2328 \r\nQ 1056 1369 1301 889 \r\nQ 1547 409 2034 409 \r\nQ 2525 409 2770 889 \r\nQ 3016 1369 3016 2328 \r\nQ 3016 3291 2770 3770 \r\nQ 2525 4250 2034 4250 \r\nz\r\nM 2034 4750 \r\nQ 2819 4750 3233 4129 \r\nQ 3647 3509 3647 2328 \r\nQ 3647 1150 3233 529 \r\nQ 2819 -91 2034 -91 \r\nQ 1250 -91 836 529 \r\nQ 422 1150 422 2328 \r\nQ 422 3509 836 4129 \r\nQ 1250 4750 2034 4750 \r\nz\r\n\" id=\"DejaVuSans-30\" transform=\"scale(0.015625)\"/>\r\n       </defs>\r\n       <use xlink:href=\"#DejaVuSans-30\"/>\r\n      </g>\r\n     </g>\r\n    </g>\r\n    <g id=\"xtick_2\">\r\n     <g id=\"line2d_2\">\r\n      <g>\r\n       <use style=\"stroke:#000000;stroke-width:0.8;\" x=\"69.636429\" xlink:href=\"#m68dbf31e8c\" y=\"224.64\"/>\r\n      </g>\r\n     </g>\r\n     <g id=\"text_2\">\r\n      <!-- 5 -->\r\n      <g transform=\"translate(66.455179 239.238437)scale(0.1 -0.1)\">\r\n       <defs>\r\n        <path d=\"M 691 4666 \r\nL 3169 4666 \r\nL 3169 4134 \r\nL 1269 4134 \r\nL 1269 2991 \r\nQ 1406 3038 1543 3061 \r\nQ 1681 3084 1819 3084 \r\nQ 2600 3084 3056 2656 \r\nQ 3513 2228 3513 1497 \r\nQ 3513 744 3044 326 \r\nQ 2575 -91 1722 -91 \r\nQ 1428 -91 1123 -41 \r\nQ 819 9 494 109 \r\nL 494 744 \r\nQ 775 591 1075 516 \r\nQ 1375 441 1709 441 \r\nQ 2250 441 2565 725 \r\nQ 2881 1009 2881 1497 \r\nQ 2881 1984 2565 2268 \r\nQ 2250 2553 1709 2553 \r\nQ 1456 2553 1204 2497 \r\nQ 953 2441 691 2322 \r\nL 691 4666 \r\nz\r\n\" id=\"DejaVuSans-35\" transform=\"scale(0.015625)\"/>\r\n       </defs>\r\n       <use xlink:href=\"#DejaVuSans-35\"/>\r\n      </g>\r\n     </g>\r\n    </g>\r\n    <g id=\"xtick_3\">\r\n     <g id=\"line2d_3\">\r\n      <g>\r\n       <use style=\"stroke:#000000;stroke-width:0.8;\" x=\"108.465\" xlink:href=\"#m68dbf31e8c\" y=\"224.64\"/>\r\n      </g>\r\n     </g>\r\n     <g id=\"text_3\">\r\n      <!-- 10 -->\r\n      <g transform=\"translate(102.1025 239.238437)scale(0.1 -0.1)\">\r\n       <defs>\r\n        <path d=\"M 794 531 \r\nL 1825 531 \r\nL 1825 4091 \r\nL 703 3866 \r\nL 703 4441 \r\nL 1819 4666 \r\nL 2450 4666 \r\nL 2450 531 \r\nL 3481 531 \r\nL 3481 0 \r\nL 794 0 \r\nL 794 531 \r\nz\r\n\" id=\"DejaVuSans-31\" transform=\"scale(0.015625)\"/>\r\n       </defs>\r\n       <use xlink:href=\"#DejaVuSans-31\"/>\r\n       <use x=\"63.623047\" xlink:href=\"#DejaVuSans-30\"/>\r\n      </g>\r\n     </g>\r\n    </g>\r\n    <g id=\"xtick_4\">\r\n     <g id=\"line2d_4\">\r\n      <g>\r\n       <use style=\"stroke:#000000;stroke-width:0.8;\" x=\"147.293571\" xlink:href=\"#m68dbf31e8c\" y=\"224.64\"/>\r\n      </g>\r\n     </g>\r\n     <g id=\"text_4\">\r\n      <!-- 15 -->\r\n      <g transform=\"translate(140.931071 239.238437)scale(0.1 -0.1)\">\r\n       <use xlink:href=\"#DejaVuSans-31\"/>\r\n       <use x=\"63.623047\" xlink:href=\"#DejaVuSans-35\"/>\r\n      </g>\r\n     </g>\r\n    </g>\r\n    <g id=\"xtick_5\">\r\n     <g id=\"line2d_5\">\r\n      <g>\r\n       <use style=\"stroke:#000000;stroke-width:0.8;\" x=\"186.122143\" xlink:href=\"#m68dbf31e8c\" y=\"224.64\"/>\r\n      </g>\r\n     </g>\r\n     <g id=\"text_5\">\r\n      <!-- 20 -->\r\n      <g transform=\"translate(179.759643 239.238437)scale(0.1 -0.1)\">\r\n       <defs>\r\n        <path d=\"M 1228 531 \r\nL 3431 531 \r\nL 3431 0 \r\nL 469 0 \r\nL 469 531 \r\nQ 828 903 1448 1529 \r\nQ 2069 2156 2228 2338 \r\nQ 2531 2678 2651 2914 \r\nQ 2772 3150 2772 3378 \r\nQ 2772 3750 2511 3984 \r\nQ 2250 4219 1831 4219 \r\nQ 1534 4219 1204 4116 \r\nQ 875 4013 500 3803 \r\nL 500 4441 \r\nQ 881 4594 1212 4672 \r\nQ 1544 4750 1819 4750 \r\nQ 2544 4750 2975 4387 \r\nQ 3406 4025 3406 3419 \r\nQ 3406 3131 3298 2873 \r\nQ 3191 2616 2906 2266 \r\nQ 2828 2175 2409 1742 \r\nQ 1991 1309 1228 531 \r\nz\r\n\" id=\"DejaVuSans-32\" transform=\"scale(0.015625)\"/>\r\n       </defs>\r\n       <use xlink:href=\"#DejaVuSans-32\"/>\r\n       <use x=\"63.623047\" xlink:href=\"#DejaVuSans-30\"/>\r\n      </g>\r\n     </g>\r\n    </g>\r\n    <g id=\"xtick_6\">\r\n     <g id=\"line2d_6\">\r\n      <g>\r\n       <use style=\"stroke:#000000;stroke-width:0.8;\" x=\"224.950714\" xlink:href=\"#m68dbf31e8c\" y=\"224.64\"/>\r\n      </g>\r\n     </g>\r\n     <g id=\"text_6\">\r\n      <!-- 25 -->\r\n      <g transform=\"translate(218.588214 239.238437)scale(0.1 -0.1)\">\r\n       <use xlink:href=\"#DejaVuSans-32\"/>\r\n       <use x=\"63.623047\" xlink:href=\"#DejaVuSans-35\"/>\r\n      </g>\r\n     </g>\r\n    </g>\r\n   </g>\r\n   <g id=\"matplotlib.axis_2\">\r\n    <g id=\"ytick_1\">\r\n     <g id=\"line2d_7\">\r\n      <defs>\r\n       <path d=\"M 0 0 \r\nL -3.5 0 \r\n\" id=\"m98da5ef248\" style=\"stroke:#000000;stroke-width:0.8;\"/>\r\n      </defs>\r\n      <g>\r\n       <use style=\"stroke:#000000;stroke-width:0.8;\" x=\"26.925\" xlink:href=\"#m98da5ef248\" y=\"11.082857\"/>\r\n      </g>\r\n     </g>\r\n     <g id=\"text_7\">\r\n      <!-- 0 -->\r\n      <g transform=\"translate(13.5625 14.882076)scale(0.1 -0.1)\">\r\n       <use xlink:href=\"#DejaVuSans-30\"/>\r\n      </g>\r\n     </g>\r\n    </g>\r\n    <g id=\"ytick_2\">\r\n     <g id=\"line2d_8\">\r\n      <g>\r\n       <use style=\"stroke:#000000;stroke-width:0.8;\" x=\"26.925\" xlink:href=\"#m98da5ef248\" y=\"49.911429\"/>\r\n      </g>\r\n     </g>\r\n     <g id=\"text_8\">\r\n      <!-- 5 -->\r\n      <g transform=\"translate(13.5625 53.710647)scale(0.1 -0.1)\">\r\n       <use xlink:href=\"#DejaVuSans-35\"/>\r\n      </g>\r\n     </g>\r\n    </g>\r\n    <g id=\"ytick_3\">\r\n     <g id=\"line2d_9\">\r\n      <g>\r\n       <use style=\"stroke:#000000;stroke-width:0.8;\" x=\"26.925\" xlink:href=\"#m98da5ef248\" y=\"88.74\"/>\r\n      </g>\r\n     </g>\r\n     <g id=\"text_9\">\r\n      <!-- 10 -->\r\n      <g transform=\"translate(7.2 92.539219)scale(0.1 -0.1)\">\r\n       <use xlink:href=\"#DejaVuSans-31\"/>\r\n       <use x=\"63.623047\" xlink:href=\"#DejaVuSans-30\"/>\r\n      </g>\r\n     </g>\r\n    </g>\r\n    <g id=\"ytick_4\">\r\n     <g id=\"line2d_10\">\r\n      <g>\r\n       <use style=\"stroke:#000000;stroke-width:0.8;\" x=\"26.925\" xlink:href=\"#m98da5ef248\" y=\"127.568571\"/>\r\n      </g>\r\n     </g>\r\n     <g id=\"text_10\">\r\n      <!-- 15 -->\r\n      <g transform=\"translate(7.2 131.36779)scale(0.1 -0.1)\">\r\n       <use xlink:href=\"#DejaVuSans-31\"/>\r\n       <use x=\"63.623047\" xlink:href=\"#DejaVuSans-35\"/>\r\n      </g>\r\n     </g>\r\n    </g>\r\n    <g id=\"ytick_5\">\r\n     <g id=\"line2d_11\">\r\n      <g>\r\n       <use style=\"stroke:#000000;stroke-width:0.8;\" x=\"26.925\" xlink:href=\"#m98da5ef248\" y=\"166.397143\"/>\r\n      </g>\r\n     </g>\r\n     <g id=\"text_11\">\r\n      <!-- 20 -->\r\n      <g transform=\"translate(7.2 170.196362)scale(0.1 -0.1)\">\r\n       <use xlink:href=\"#DejaVuSans-32\"/>\r\n       <use x=\"63.623047\" xlink:href=\"#DejaVuSans-30\"/>\r\n      </g>\r\n     </g>\r\n    </g>\r\n    <g id=\"ytick_6\">\r\n     <g id=\"line2d_12\">\r\n      <g>\r\n       <use style=\"stroke:#000000;stroke-width:0.8;\" x=\"26.925\" xlink:href=\"#m98da5ef248\" y=\"205.225714\"/>\r\n      </g>\r\n     </g>\r\n     <g id=\"text_12\">\r\n      <!-- 25 -->\r\n      <g transform=\"translate(7.2 209.024933)scale(0.1 -0.1)\">\r\n       <use xlink:href=\"#DejaVuSans-32\"/>\r\n       <use x=\"63.623047\" xlink:href=\"#DejaVuSans-35\"/>\r\n      </g>\r\n     </g>\r\n    </g>\r\n   </g>\r\n   <g id=\"patch_3\">\r\n    <path d=\"M 26.925 224.64 \r\nL 26.925 7.2 \r\n\" style=\"fill:none;stroke:#000000;stroke-linecap:square;stroke-linejoin:miter;stroke-width:0.8;\"/>\r\n   </g>\r\n   <g id=\"patch_4\">\r\n    <path d=\"M 244.365 224.64 \r\nL 244.365 7.2 \r\n\" style=\"fill:none;stroke:#000000;stroke-linecap:square;stroke-linejoin:miter;stroke-width:0.8;\"/>\r\n   </g>\r\n   <g id=\"patch_5\">\r\n    <path d=\"M 26.925 224.64 \r\nL 244.365 224.64 \r\n\" style=\"fill:none;stroke:#000000;stroke-linecap:square;stroke-linejoin:miter;stroke-width:0.8;\"/>\r\n   </g>\r\n   <g id=\"patch_6\">\r\n    <path d=\"M 26.925 7.2 \r\nL 244.365 7.2 \r\n\" style=\"fill:none;stroke:#000000;stroke-linecap:square;stroke-linejoin:miter;stroke-width:0.8;\"/>\r\n   </g>\r\n  </g>\r\n </g>\r\n <defs>\r\n  <clipPath id=\"pc11fe2bef6\">\r\n   <rect height=\"217.44\" width=\"217.44\" x=\"26.925\" y=\"7.2\"/>\r\n  </clipPath>\r\n </defs>\r\n</svg>\r\n",
+      "image/png": "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\n"
+     },
+     "metadata": {
+      "needs_background": "light"
+     }
+    }
+   ],
+   "source": [
+    "plt.imshow(x_test[73])"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  }
+ ]
+}
